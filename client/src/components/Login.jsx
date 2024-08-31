@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { LoginBg } from "../assets/video";
 import { FcGoogle } from "react-icons/fc";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, getAuth } from "firebase/auth";
 import { app } from "../config/firebase.config";
 import { useNavigate } from "react-router-dom";
 import { validateUser } from "../api";
@@ -16,33 +16,25 @@ const Login = ({ setAuth }) => {
 
   const loginWithGoogle = async () => {
     try {
-      const userCred = await signInWithPopup(firebaseAuth, provider);
+      const result = await signInWithPopup(firebaseAuth, provider);
+      const userCred = result.user;
+
       if (userCred) {
         setAuth(true);
         window.localStorage.setItem("auth", "true");
 
-        const unsubscribe = firebaseAuth.onAuthStateChanged(async (userCred) => {
-          if (userCred) {
-            const token = await userCred.getIdToken();
-            window.localStorage.setItem("auth", "true");
-            const data = await validateUser(token);
-            dispatch({
-              type: actionType.SET_USER,
-              user: data,
-            });
-            navigate("/", { replace: true });
-          } else {
-            setAuth(false);
-            dispatch({
-              type: actionType.SET_USER,
-              user: null,
-            });
-            navigate("/login");
-          }
+        // Get the ID token and validate user
+        const token = await userCred.getIdToken();
+        const data = await validateUser(token);
+
+        // Dispatch user data to context
+        dispatch({
+          type: actionType.SET_USER,
+          user: data,
         });
 
-        // Cleanup function
-        return () => unsubscribe();
+        // Navigate to home page
+        navigate("/", { replace: true });
       }
     } catch (error) {
       console.error("Error during Google sign-in:", error);
@@ -77,7 +69,7 @@ const Login = ({ setAuth }) => {
             className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-cardOverlay cursor-pointer hover:bg-card hover:shadow-md duration-100 ease-in-out transition-all"
           >
             <FcGoogle className="text-xl" />
-            <p>Signin with Google</p>
+            <p>Sign in with Google</p>
           </div>
         </div>
       </div>
