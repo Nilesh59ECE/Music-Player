@@ -47,7 +47,8 @@ const Login = ({ setAuth }) => {
   };
 
   useEffect(() => {
-    if (window.localStorage.getItem("auth") === "true") {
+    const auth = window.localStorage.getItem("auth");
+    if (auth === "true") {
       navigate("/", { replace: true });
     }
   }, [navigate]);
