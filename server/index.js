@@ -1,5 +1,5 @@
 const express = require('express');
-const app = express();
+const inde = express();
 const cors = require('cors');
 const { default: mongoose } = require('mongoose');
 
