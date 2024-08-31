@@ -15,21 +15,20 @@ const Login = ({ setAuth }) => {
   const [{ user }, dispatch] = useStateValue();
 
   const loginWithGoogle = async () => {
-    await signInWithPopup(firebaseAuth, provider).then((userCred) => {
+    try {
+      const userCred = await signInWithPopup(firebaseAuth, provider);
       if (userCred) {
         setAuth(true);
         window.localStorage.setItem("auth", "true");
 
-        firebaseAuth.onAuthStateChanged((userCred) => {
+        const unsubscribe = firebaseAuth.onAuthStateChanged(async (userCred) => {
           if (userCred) {
-            userCred.getIdToken().then((token) => {
-              window.localStorage.setItem("auth", "true");
-              validateUser(token).then((data) => {
-                dispatch({
-                  type: actionType.SET_USER,
-                  user: data,
-                });
-              });
+            const token = await userCred.getIdToken();
+            window.localStorage.setItem("auth", "true");
+            const data = await validateUser(token);
+            dispatch({
+              type: actionType.SET_USER,
+              user: data,
             });
             navigate("/", { replace: true });
           } else {
@@ -41,14 +40,25 @@ const Login = ({ setAuth }) => {
             navigate("/login");
           }
         });
+
+        // Cleanup function
+        return () => unsubscribe();
       }
-    });
+    } catch (error) {
+      console.error("Error during Google sign-in:", error);
+      setAuth(false);
+      dispatch({
+        type: actionType.SET_USER,
+        user: null,
+      });
+    }
   };
 
   useEffect(() => {
-    if (window.localStorage.getItem("auth") === "true")
+    if (window.localStorage.getItem("auth") === "true") {
       navigate("/", { replace: true });
-  }, []);
+    }
+  }, [navigate]);
 
   return (
     <div className="relative w-screen h-screen">
@@ -64,7 +74,7 @@ const Login = ({ setAuth }) => {
         <div className="w-full md:w-375 p-4 bg-lightOverlay shadow-2xl rounded-md backdrop-blur-md flex flex-col items-center justify-center">
           <div
             onClick={loginWithGoogle}
-            className="flex items-center justify-center  gap-2 px-4 py-2 rounded-md bg-cardOverlay cursor-pointer hover:bg-card hover:shadow-md duration-100 ease-in-out transition-all"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-cardOverlay cursor-pointer hover:bg-card hover:shadow-md duration-100 ease-in-out transition-all"
           >
             <FcGoogle className="text-xl" />
             <p>Signin with Google</p>
