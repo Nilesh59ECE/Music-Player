@@ -1,5 +1,3 @@
-// src/config/firebase.config.js
-
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
@@ -17,7 +15,6 @@ const firebaseConfig = {
 // Initialize Firebase app
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 console.log("Firebase Auth Domain:", process.env.REACT_APP_FIREBASE_AUTH_DOMAIN);
-
 
 // Initialize Firebase Auth and Storage
 const auth = getAuth(app);
